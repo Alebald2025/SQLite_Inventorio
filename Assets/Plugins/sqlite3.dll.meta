@@ -1,0 +1,33 @@
+<<<<<<< HEAD
+fileFormatVersion: 2
+guid: d9a8c9249d882264581aeac52e5ec1af
+PluginImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  iconMap: {}
+  executionOrder: {}
+  defineConstraints: []
+  isPreloaded: 0
+  isOverridable: 0
+  isExplicitlyReferenced: 0
+  validateReferences: 1
+  platformData:
+  - first:
+      Any: 
+    second:
+      enabled: 1
+      settings: {}
+  - first:
+      Editor: Editor
+    second:
+      enabled: 0
+      settings:
+        DefaultValueInitialized: true
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+=======
+version https://git-lfs.github.com/spec/v1
+oid sha256:299d123aeff599df8eeecfcf076a832ed7c1cc4de1e8b97a20be892c852f82e5
+size 526
+>>>>>>> CambiosVisuales
