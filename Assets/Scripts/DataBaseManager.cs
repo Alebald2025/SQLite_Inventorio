@@ -2,6 +2,7 @@
 using UnityEngine;
 using Mono.Data.Sqlite;
 using System.Data;
+using System.Collections.Generic;
 
 public class DatabaseManager : MonoBehaviour
 {
@@ -22,6 +23,7 @@ public class DatabaseManager : MonoBehaviour
                 conn.Open();
                 using (var cmd = conn.CreateCommand())
                 {
+
                     cmd.CommandText = @"
                         CREATE TABLE IF NOT EXISTS Usuaris (
                             UserID      INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,13 +31,46 @@ public class DatabaseManager : MonoBehaviour
                             Password    TEXT    NOT NULL
                         )";
                     cmd.ExecuteNonQuery();
+
+                    cmd.CommandText = @"
+                        CREATE TABLE IF NOT EXISTS Item (
+                            ID          INTEGER PRIMARY KEY AUTOINCREMENT,
+                            Name        TEXT    NOT NULL,
+                            Description TEXT,
+                            MaxStack    INTEGER NOT NULL DEFAULT 99
+                        );
+
+                        CREATE TABLE IF NOT EXISTS Inventario (
+                            InventarioID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            userId       INTEGER NOT NULL,
+                            itemId       INTEGER NOT NULL,
+                            Cantidad     INTEGER NOT NULL DEFAULT 1,
+                            FOREIGN KEY (userId)  REFERENCES Usuaris(UserID)  ON DELETE CASCADE,
+                            FOREIGN KEY (itemId)  REFERENCES Item(ID)         ON DELETE RESTRICT,
+                            UNIQUE(userId, itemId)
+                        );";
+                    cmd.ExecuteNonQuery();
+
+                    // ──────────────────────────────────────────────
+                    // Datos de prueba (opcional – solo se ejecuta una vez)
+                    // Puedes comentarlo después de la primera ejecución
+                    // ──────────────────────────────────────────────
+                    cmd.CommandText = @"
+                        INSERT OR IGNORE INTO Item (Name, Description, MaxStack) VALUES
+                        ('Espada de Hierro',   'Arma básica de guerrero', 1),
+                        ('Poción de Vida',     'Restaura 50 HP',          20),
+                        ('Escudo de Madera',   'Defensa básica',          1),
+                        ('Cristal Mágico',     'Material de crafting',    99),
+                        ('Anillo de Fuerza',   'Aumenta fuerza +5',       1);
+                    ";
+                    cmd.ExecuteNonQuery();
                 }
             }
-            Debug.Log("Base de dades inicialitzada correctament");
+            Debug.Log("Base de datos inicializada (usuarios + inventario)");
         }
         catch (Exception e)
         {
-            Debug.LogError("Error creant base de dades: " + e.Message);
+            Debug.LogError("Error al inicializar la base de datos: " + e.Message);
         }
     }
 
@@ -116,4 +151,117 @@ public class DatabaseManager : MonoBehaviour
             return (false, "Error de connexió: " + ex.Message, -1);
         }
     }
+
+    // Obtener todo el inventario de un usuario
+    public List<InventarioEntry> GetInventario(int userId)
+    {
+        var lista = new List<InventarioEntry>();
+
+        using (var conn = new SqliteConnection(dbPath))
+        {
+            conn.Open();
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    SELECT inv.itemId, i.Name, i.Description, i.MaxStack, inv.Cantidad
+                    FROM Inventario inv
+                    JOIN Item i ON inv.itemId = i.ID
+                    WHERE inv.userId = @userId
+                    ORDER BY i.Name";
+
+                cmd.Parameters.AddWithValue("@userId", userId);
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        lista.Add(new InventarioEntry
+                        {
+                            ItemId = reader.GetInt32(0),
+                            Name = reader.GetString(1),
+                            Description = reader.IsDBNull(2) ? "" : reader.GetString(2),
+                            MaxStack = reader.GetInt32(3),
+                            Cantidad = reader.GetInt32(4)
+                        });
+                    }
+                }
+            }
+        }
+        return lista;
+    }
+
+    // Añadir / incrementar cantidad de un ítem
+    public bool AddItem(int userId, int itemId, int cantidad = 1)
+    {
+        if (cantidad <= 0) return false;
+
+        using (var conn = new SqliteConnection(dbPath))
+        {
+            conn.Open();
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    INSERT INTO Inventario (userId, itemId, Cantidad)
+                    VALUES (@uid, @iid, @cant)
+                    ON CONFLICT(userId, itemId)
+                    DO UPDATE SET Cantidad = Cantidad + @cant;";
+
+                cmd.Parameters.AddWithValue("@uid", userId);
+                cmd.Parameters.AddWithValue("@iid", itemId);
+                cmd.Parameters.AddWithValue("@cant", cantidad);
+
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+    }
+
+    // Cambiar cantidad exacta (puede usarse para restar)
+    public bool SetCantidad(int userId, int itemId, int nuevaCantidad)
+    {
+        if (nuevaCantidad <= 0)
+            return RemoveItem(userId, itemId);
+
+        using (var conn = new SqliteConnection(dbPath))
+        {
+            conn.Open();
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    UPDATE Inventario
+                    SET Cantidad = @cant
+                    WHERE userId = @uid AND itemId = @iid;";
+
+                cmd.Parameters.AddWithValue("@cant", nuevaCantidad);
+                cmd.Parameters.AddWithValue("@uid", userId);
+                cmd.Parameters.AddWithValue("@iid", itemId);
+
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+    }
+
+    // Eliminar un ítem del inventario
+    public bool RemoveItem(int userId, int itemId)
+    {
+        using (var conn = new SqliteConnection(dbPath))
+        {
+            conn.Open();
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "DELETE FROM Inventario WHERE userId = @uid AND itemId = @iid;";
+                cmd.Parameters.AddWithValue("@uid", userId);
+                cmd.Parameters.AddWithValue("@iid", itemId);
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+    }
+}
+
+public class InventarioEntry
+{
+    public int ItemId;
+    public string Name;
+    public string Description;
+    public int MaxStack;
+    public int Cantidad;
 }
