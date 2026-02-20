@@ -73,7 +73,7 @@ public class UILoginRegister : MonoBehaviour
 
     private void CargarEscenaPrincipal()
     {
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene("Inventario");
     }
 
     private void OnRegister()
