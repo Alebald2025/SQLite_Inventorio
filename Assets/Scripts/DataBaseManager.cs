@@ -24,7 +24,7 @@ public class DatabaseManager : MonoBehaviour
                 conn.Open();
                 using (var cmd = conn.CreateCommand())
                 {
-                    // Tabla Usuaris (para login/register)
+                    // Tabla Usuaris
                     cmd.CommandText = @"
                         CREATE TABLE IF NOT EXISTS Usuaris (
                             UserID      INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,7 +33,7 @@ public class DatabaseManager : MonoBehaviour
                         )";
                     cmd.ExecuteNonQuery();
 
-                    // Tabla Item (catálogo global de objetos)
+                    // Tabla Item
                     cmd.CommandText = @"
                         CREATE TABLE IF NOT EXISTS Item (
                             ID          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,7 +43,7 @@ public class DatabaseManager : MonoBehaviour
                         )";
                     cmd.ExecuteNonQuery();
 
-                    // Tabla Inventario (dependiente del usuario)
+                    // Tabla Inventario
                     cmd.CommandText = @"
                         CREATE TABLE IF NOT EXISTS Inventario (
                             InventarioID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,7 +56,7 @@ public class DatabaseManager : MonoBehaviour
                         )";
                     cmd.ExecuteNonQuery();
 
-                    // Datos iniciales (items con límites específicos)
+                    // Datos iniciales
                     cmd.CommandText = @"
                         INSERT OR IGNORE INTO Item (Nombre, Descripcion, MaxStack) VALUES
                         ('Item1', 'Descripción del Item 1', 1),
@@ -75,9 +75,7 @@ public class DatabaseManager : MonoBehaviour
         }
     }
 
-    // ============================================================================
-    // MÉTODOS DE LOGIN Y REGISTER (código completo, como pediste)
-    // ============================================================================
+    // MÉTODOS DE LOGIN Y REGISTER
 
     public string RegisterUser(string username, string password)
     {
@@ -155,16 +153,14 @@ public class DatabaseManager : MonoBehaviour
         }
     }
 
-    // ============================================================================
-    // MÉTODOS PARA INVENTARIO (añadir, restar, get cantidad)
-    // ============================================================================
+    // MÉTODOS PARA INVENTARIO
 
     public bool AddItem(int userId, int itemId)
     {
         int actual = GetCantidad(userId, itemId);
         int max = GetMaxStack(itemId);
 
-        if (actual >= max) return false; // No añadir si ya está al máximo
+        if (actual >= max) return false;
 
         using (var conn = new SqliteConnection(dbPath))
         {
@@ -185,7 +181,7 @@ public class DatabaseManager : MonoBehaviour
     public bool RestarItem(int userId, int itemId)
     {
         int actual = GetCantidad(userId, itemId);
-        if (actual <= 0) return false; // No restar si ya es 0
+        if (actual <= 0) return false;
 
         using (var conn = new SqliteConnection(dbPath))
         {
@@ -233,7 +229,7 @@ public class DatabaseManager : MonoBehaviour
                 cmd.CommandText = "SELECT MaxStack FROM Item WHERE ID = @iid";
                 cmd.Parameters.AddWithValue("@iid", itemId);
                 var result = cmd.ExecuteScalar();
-                return result != null ? Convert.ToInt32(result) : 99; // Default si error
+                return result != null ? Convert.ToInt32(result) : 99;
             }
         }
     }

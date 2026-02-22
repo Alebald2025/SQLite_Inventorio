@@ -18,7 +18,7 @@ public class UILoginRegister : MonoBehaviour
 
     [Header("Mensaje único (puede estar fuera de los paneles)")]
     [SerializeField] private TextMeshProUGUI feedbackText;
-    [SerializeField] private float mensajeDuracion = 4f; // segundos que se muestra el mensaje
+    [SerializeField] private float mensajeDuracion = 4f;
     [SerializeField] private Color colorExito = Color.green;
     [SerializeField] private Color colorError = new Color(1f, 0.3f, 0.3f); 
     [SerializeField] private Color colorInfo = new Color(1f, 0.9f, 0.4f);

@@ -6,13 +6,13 @@ using UnityEngine.SceneManagement;
 public class MainMenuUI : MonoBehaviour
 {
     [Header("Referencias UI")]
-    [SerializeField] private TextMeshProUGUI usernameText;    // TextMeshPro para "Username: ..."
-    [SerializeField] private TextMeshProUGUI idText;          // TextMeshPro para "ID: ..."
-    [SerializeField] private Button botonCerrarSesion;        // El botón "CERRAR SESIÓN"
+    [SerializeField] private TextMeshProUGUI usernameText;
+    [SerializeField] private TextMeshProUGUI idText;
+    [SerializeField] private Button botonCerrarSesion;
 
     void Start()
     {
-        // Cargar datos del usuario desde PlayerPrefs (guardados en el login)
+        // Cargar datos del usuario desde PlayerPrefs
         string username = PlayerPrefs.GetString("CurrentUsername", "Desconocido");
         int userId = PlayerPrefs.GetInt("CurrentUserID", -1);
 
@@ -36,6 +36,6 @@ public class MainMenuUI : MonoBehaviour
         PlayerPrefs.Save();
 
         // Regresar a la escena de login/register
-        SceneManager.LoadScene("Login_Register");  // ← Cambia "Login" por el nombre real de tu escena de login/register
+        SceneManager.LoadScene("Login_Register");
     }
 }

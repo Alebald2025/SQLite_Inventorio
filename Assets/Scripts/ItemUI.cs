@@ -6,8 +6,8 @@ using DG.Tweening;
 public class InventoryUI : MonoBehaviour
 {
     [Header("Referencias UI")]
-    [SerializeField] private Button botonCofre;                 // InventoyIcon (el cofre que se pulsa)
-    [SerializeField] private RectTransform inventoryPanel;      // InventoryPanel (el que tiene el grid)
+    [SerializeField] private Button botonCofre;            
+    [SerializeField] private RectTransform inventoryPanel;
 
     [Header("Textos de cantidades (dentro del panel)")]
     [SerializeField] private TextMeshProUGUI cantidadEspada;
@@ -17,7 +17,7 @@ public class InventoryUI : MonoBehaviour
 
     [Header("Configuración DOTween")]
     [SerializeField] private float duracionApertura = 0.45f;
-    [SerializeField] private Ease easeApertura = Ease.OutBack;   // Rebote al abrir
+    [SerializeField] private Ease easeApertura = Ease.OutBack;
     [SerializeField] private float duracionCierre = 0.3f;
     [SerializeField] private Ease easeCierre = Ease.InBack;
 
@@ -45,11 +45,9 @@ public class InventoryUI : MonoBehaviour
         if (inventoryPanel != null)
         {
             inventoryPanel.gameObject.SetActive(false);
-            // Empieza oculto abajo (ajusta según tu posición)
             inventoryPanel.anchoredPosition = new Vector2(inventoryPanel.anchoredPosition.x, 360f);
         }
 
-        // Conectar el cofre para toggle
         if (botonCofre != null)
             botonCofre.onClick.AddListener(TogglePanel);
 
@@ -80,12 +78,10 @@ public class InventoryUI : MonoBehaviour
         panelAbierto = true;
         inventoryPanel.gameObject.SetActive(true);
 
-        // Empieza muy pequeño (escala desde centro)
         inventoryPanel.localScale = Vector3.one * 0.1f;
         inventoryPanel.DOScale(1f, duracionApertura)
-            .SetEase(Ease.OutBack);  // rebote bonito
+            .SetEase(Ease.OutBack);
 
-        // Opcional: pequeño fade-in del panel
         var canvasGroup = inventoryPanel.GetComponent<CanvasGroup>();
         if (canvasGroup == null) canvasGroup = inventoryPanel.gameObject.AddComponent<CanvasGroup>();
         canvasGroup.alpha = 0f;
@@ -100,7 +96,6 @@ public class InventoryUI : MonoBehaviour
 
         panelAbierto = false;
 
-        // Escala a pequeño + fade out
         inventoryPanel.DOScale(0.1f, duracionCierre)
             .SetEase(Ease.InBack);
 
@@ -110,7 +105,6 @@ public class InventoryUI : MonoBehaviour
                 .OnComplete(() => inventoryPanel.gameObject.SetActive(false));
     }
 
-    // Métodos para + y - (conecta tus botones dentro del panel a estos)
     public void AñadirEspada() { db.AddItem(userId, 1); ActualizarCantidades(); }
     public void DisminuirEspada() { db.RestarItem(userId, 1); ActualizarCantidades(); }
 
