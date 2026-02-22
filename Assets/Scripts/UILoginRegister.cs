@@ -62,6 +62,7 @@ public class UILoginRegister : MonoBehaviour
             PlayerPrefs.SetString("CurrentUsername", user);
             PlayerPrefs.SetInt("CurrentUserID", userId);
             PlayerPrefs.Save();
+            Debug.Log("UserID guardado: " + userId);
 
             Invoke(nameof(CargarEscenaPrincipal), 1.1f);
         }

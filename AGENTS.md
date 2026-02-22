@@ -2,7 +2,7 @@
 - Project name: SQLiteInventario
 - Unity version: Unity 2022.3.45f1
 - Active game object:
-  - Name: ItemsManager
+  - Name: Espada
   - Tag: Untagged
-  - Layer: Default
+  - Layer: UI
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->
