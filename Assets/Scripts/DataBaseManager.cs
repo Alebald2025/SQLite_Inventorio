@@ -10,7 +10,8 @@ public class DatabaseManager : MonoBehaviour
 
     private void Awake()
     {
-        dbPath = "URI=file:" + Application.persistentDataPath + "/usuaris.db";
+        // Ruta persistente para que se guarde al cerrar/abrir el juego
+        dbPath = "URI=file:" + Application.persistentDataPath + "/rpg_inventory.db";
         InitializeDatabase();
     }
 
@@ -23,7 +24,7 @@ public class DatabaseManager : MonoBehaviour
                 conn.Open();
                 using (var cmd = conn.CreateCommand())
                 {
-                    // Tabla Usuaris (sin cambios)
+                    // Tabla Usuaris (para login/register)
                     cmd.CommandText = @"
                         CREATE TABLE IF NOT EXISTS Usuaris (
                             UserID      INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,46 +33,51 @@ public class DatabaseManager : MonoBehaviour
                         )";
                     cmd.ExecuteNonQuery();
 
-                    // Tablas Inventario (sin cambios)
+                    // Tabla Item (catálogo global de objetos)
                     cmd.CommandText = @"
                         CREATE TABLE IF NOT EXISTS Item (
                             ID          INTEGER PRIMARY KEY AUTOINCREMENT,
-                            Name        TEXT    NOT NULL,
-                            Description TEXT,
-                            MaxStack    INTEGER NOT NULL DEFAULT 99
-                        );
+                            Nombre      TEXT NOT NULL UNIQUE,
+                            Descripcion TEXT,
+                            MaxStack    INTEGER NOT NULL
+                        )";
+                    cmd.ExecuteNonQuery();
 
+                    // Tabla Inventario (dependiente del usuario)
+                    cmd.CommandText = @"
                         CREATE TABLE IF NOT EXISTS Inventario (
                             InventarioID INTEGER PRIMARY KEY AUTOINCREMENT,
                             userId       INTEGER NOT NULL,
                             itemId       INTEGER NOT NULL,
-                            Cantidad     INTEGER NOT NULL DEFAULT 1,
-                            FOREIGN KEY (userId)  REFERENCES Usuaris(UserID)  ON DELETE CASCADE,
-                            FOREIGN KEY (itemId)  REFERENCES Item(ID)         ON DELETE RESTRICT,
+                            Cantidad     INTEGER NOT NULL DEFAULT 0,
+                            FOREIGN KEY (userId) REFERENCES Usuaris(UserID) ON DELETE CASCADE,
+                            FOREIGN KEY (itemId) REFERENCES Item(ID) ON DELETE RESTRICT,
                             UNIQUE(userId, itemId)
-                        );";
+                        )";
                     cmd.ExecuteNonQuery();
 
-                    // Datos de prueba ajustados a tus 4 items
+                    // Datos iniciales (items con límites específicos)
                     cmd.CommandText = @"
-                        INSERT OR IGNORE INTO Item (Name, Description, MaxStack) VALUES
-                        ('Espada', 'Arma para combate', 1),
-                        ('Meat', 'Comida para restaurar salud', 15),
-                        ('Cesped', 'Bloque de hierba para construcción', 20),
-                        ('Ender', 'Ojo para portales', 6);
+                        INSERT OR IGNORE INTO Item (Nombre, Descripcion, MaxStack) VALUES
+                        ('Item1', 'Descripción del Item 1', 1),
+                        ('Item2', 'Descripción del Item 2', 15),
+                        ('Item3', 'Descripción del Item 3', 20),
+                        ('Item4', 'Descripción del Item 4', 6);
                     ";
                     cmd.ExecuteNonQuery();
                 }
             }
-            Debug.Log("DB inicializada");
+            Debug.Log("Base de datos inicializada en: " + dbPath);
         }
         catch (Exception e)
         {
-            Debug.LogError("Error DB: " + e.Message);
+            Debug.LogError("Error inicializando DB: " + e.Message);
         }
     }
 
-    // Login/Register sin cambios (mantén los tuyos)
+    // ============================================================================
+    // MÉTODOS DE LOGIN Y REGISTER (código completo, como pediste)
+    // ============================================================================
 
     public string RegisterUser(string username, string password)
     {
@@ -149,51 +155,16 @@ public class DatabaseManager : MonoBehaviour
         }
     }
 
-    // Métodos Inventario (actualizados)
-    public List<InventarioEntry> GetInventario(int userId)
-    {
-        var lista = new List<InventarioEntry>();
+    // ============================================================================
+    // MÉTODOS PARA INVENTARIO (añadir, restar, get cantidad)
+    // ============================================================================
 
-        using (var conn = new SqliteConnection(dbPath))
-        {
-            conn.Open();
-            using (var cmd = conn.CreateCommand())
-            {
-                cmd.CommandText = @"
-                    SELECT inv.itemId, i.Name, i.Description, i.MaxStack, inv.Cantidad
-                    FROM Inventario inv
-                    JOIN Item i ON inv.itemId = i.ID
-                    WHERE inv.userId = @userId
-                    ORDER BY i.Name";
-
-                cmd.Parameters.AddWithValue("@userId", userId);
-
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        lista.Add(new InventarioEntry
-                        {
-                            ItemId = reader.GetInt32(0),
-                            Name = reader.GetString(1),
-                            Description = reader.IsDBNull(2) ? "" : reader.GetString(2),
-                            MaxStack = reader.GetInt32(3),
-                            Cantidad = reader.GetInt32(4)
-                        });
-                    }
-                }
-            }
-        }
-        return lista;
-    }
-
-    // Añadir/incrementar (respeta MaxStack)
-    public bool AddItem(int userId, int itemId, int cantidad = 1)
+    public bool AddItem(int userId, int itemId)
     {
         int actual = GetCantidad(userId, itemId);
         int max = GetMaxStack(itemId);
 
-        if (actual + cantidad > max) return false; // no añadir si supera max
+        if (actual >= max) return false; // No añadir si ya está al máximo
 
         using (var conn = new SqliteConnection(dbPath))
         {
@@ -202,32 +173,40 @@ public class DatabaseManager : MonoBehaviour
             {
                 cmd.CommandText = @"
                     INSERT INTO Inventario (userId, itemId, Cantidad)
-                    VALUES (@uid, @iid, @cant)
-                    ON CONFLICT(userId, itemId)
-                    DO UPDATE SET Cantidad = Cantidad + @cant;";
-
+                    VALUES (@uid, @iid, 1)
+                    ON CONFLICT(userId, itemId) DO UPDATE SET Cantidad = Cantidad + 1";
                 cmd.Parameters.AddWithValue("@uid", userId);
                 cmd.Parameters.AddWithValue("@iid", itemId);
-                cmd.Parameters.AddWithValue("@cant", cantidad);
-
                 return cmd.ExecuteNonQuery() > 0;
             }
         }
     }
 
-    // Restar/decrementar (si 0, elimina)
-    public bool RestarItem(int userId, int itemId, int cantidad = 1)
+    public bool RestarItem(int userId, int itemId)
     {
         int actual = GetCantidad(userId, itemId);
-        int nueva = actual - cantidad;
+        if (actual <= 0) return false; // No restar si ya es 0
 
-        if (nueva <= 0)
-            return RemoveItem(userId, itemId);
-        else
-            return SetCantidad(userId, itemId, nueva);
+        using (var conn = new SqliteConnection(dbPath))
+        {
+            conn.Open();
+            using (var cmd = conn.CreateCommand())
+            {
+                if (actual - 1 <= 0)
+                {
+                    cmd.CommandText = "DELETE FROM Inventario WHERE userId = @uid AND itemId = @iid";
+                }
+                else
+                {
+                    cmd.CommandText = "UPDATE Inventario SET Cantidad = Cantidad - 1 WHERE userId = @uid AND itemId = @iid";
+                }
+                cmd.Parameters.AddWithValue("@uid", userId);
+                cmd.Parameters.AddWithValue("@iid", itemId);
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
     }
 
-    // Helpers privados (añadidos)
     public int GetCantidad(int userId, int itemId)
     {
         using (var conn = new SqliteConnection(dbPath))
@@ -244,7 +223,7 @@ public class DatabaseManager : MonoBehaviour
         }
     }
 
-    public int GetMaxStack(int itemId)
+    private int GetMaxStack(int itemId)
     {
         using (var conn = new SqliteConnection(dbPath))
         {
@@ -254,50 +233,8 @@ public class DatabaseManager : MonoBehaviour
                 cmd.CommandText = "SELECT MaxStack FROM Item WHERE ID = @iid";
                 cmd.Parameters.AddWithValue("@iid", itemId);
                 var result = cmd.ExecuteScalar();
-                return result != null ? Convert.ToInt32(result) : 99;
+                return result != null ? Convert.ToInt32(result) : 99; // Default si error
             }
         }
     }
-
-    // Set exacto
-    public bool SetCantidad(int userId, int itemId, int nuevaCantidad)
-    {
-        using (var conn = new SqliteConnection(dbPath))
-        {
-            conn.Open();
-            using (var cmd = conn.CreateCommand())
-            {
-                cmd.CommandText = "UPDATE Inventario SET Cantidad = @cant WHERE userId = @uid AND itemId = @iid";
-                cmd.Parameters.AddWithValue("@cant", nuevaCantidad);
-                cmd.Parameters.AddWithValue("@uid", userId);
-                cmd.Parameters.AddWithValue("@iid", itemId);
-                return cmd.ExecuteNonQuery() > 0;
-            }
-        }
-    }
-
-    // Remove
-    public bool RemoveItem(int userId, int itemId)
-    {
-        using (var conn = new SqliteConnection(dbPath))
-        {
-            conn.Open();
-            using (var cmd = conn.CreateCommand())
-            {
-                cmd.CommandText = "DELETE FROM Inventario WHERE userId = @uid AND itemId = @iid";
-                cmd.Parameters.AddWithValue("@uid", userId);
-                cmd.Parameters.AddWithValue("@iid", itemId);
-                return cmd.ExecuteNonQuery() > 0;
-            }
-        }
-    }
-}
-
-public class InventarioEntry
-{
-    public int ItemId;
-    public string Name;
-    public string Description;
-    public int MaxStack;
-    public int Cantidad;
 }
