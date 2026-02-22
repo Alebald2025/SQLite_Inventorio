@@ -1,87 +1,123 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
+using DG.Tweening;
 
-public class ItemsUI : MonoBehaviour
+public class InventoryUI : MonoBehaviour
 {
-    [Header("Textos de cantidades")]
-    [SerializeField] private TextMeshProUGUI cantidadItem1;
-    [SerializeField] private TextMeshProUGUI cantidadItem2;
-    [SerializeField] private TextMeshProUGUI cantidadItem3;
-    [SerializeField] private TextMeshProUGUI cantidadItem4;
+    [Header("Referencias UI")]
+    [SerializeField] private Button botonCofre;                 // InventoyIcon (el cofre que se pulsa)
+    [SerializeField] private RectTransform inventoryPanel;      // InventoryPanel (el que tiene el grid)
+
+    [Header("Textos de cantidades (dentro del panel)")]
+    [SerializeField] private TextMeshProUGUI cantidadEspada;
+    [SerializeField] private TextMeshProUGUI cantidadComida;
+    [SerializeField] private TextMeshProUGUI cantidadLingote;
+    [SerializeField] private TextMeshProUGUI cantidadEnderPearl;
+
+    [Header("Configuración DOTween")]
+    [SerializeField] private float duracionApertura = 0.45f;
+    [SerializeField] private Ease easeApertura = Ease.OutBack;   // Rebote al abrir
+    [SerializeField] private float duracionCierre = 0.3f;
+    [SerializeField] private Ease easeCierre = Ease.InBack;
 
     private DatabaseManager db;
-    private int userId = -1;
+    private int userId;
+    private bool panelAbierto = false;
 
     void Start()
     {
-        // Buscar DB
         db = FindObjectOfType<DatabaseManager>();
         if (db == null)
         {
-            Debug.LogError("DatabaseManager no encontrado en la escena. Añade un GameObject con este script.");
+            Debug.LogError("No se encontró DatabaseManager en la escena");
             return;
         }
 
-        // Cargar UserID
         userId = PlayerPrefs.GetInt("CurrentUserID", -1);
         if (userId == -1)
         {
-            Debug.LogError("No hay usuario logueado (CurrentUserID no existe en PlayerPrefs).");
+            Debug.LogError("No hay usuario logueado (CurrentUserID no encontrado)");
             return;
         }
 
-        Debug.Log($"Inventario cargado para usuario ID: {userId}");
+        // Configuración inicial del panel
+        if (inventoryPanel != null)
+        {
+            inventoryPanel.gameObject.SetActive(false);
+            // Empieza oculto abajo (ajusta según tu posición)
+            inventoryPanel.anchoredPosition = new Vector2(inventoryPanel.anchoredPosition.x, -800f);
+        }
+
+        // Conectar el cofre para toggle
+        if (botonCofre != null)
+            botonCofre.onClick.AddListener(TogglePanel);
 
         ActualizarCantidades();
     }
 
-    // Añadir (botones izquierda)
-    public void AñadirItem1() { Añadir(1); }
-    public void AñadirItem2() { Añadir(2); }
-    public void AñadirItem3() { Añadir(3); }
-    public void AñadirItem4() { Añadir(4); }
-
-    // Disminuir (botones derecha)
-    public void DisminuirItem1() { Disminuir(1); }
-    public void DisminuirItem2() { Disminuir(2); }
-    public void DisminuirItem3() { Disminuir(3); }
-    public void DisminuirItem4() { Disminuir(4); }
-
-    private void Añadir(int itemId)
+    void Update()
     {
-        if (db == null || userId == -1) return;
-
-        bool añadido = db.AddItem(userId, itemId);
-        if (añadido)
+        // Cerrar con ESC si está abierto
+        if (panelAbierto && Input.GetKeyDown(KeyCode.Escape))
         {
-            ActualizarCantidades();
-        }
-        else
-        {
-            Debug.Log($"No se pudo añadir más del item {itemId} (límite alcanzado)");
+            CerrarPanel();
         }
     }
 
-    private void Disminuir(int itemId)
+    private void TogglePanel()
     {
-        if (db == null || userId == -1) return;
-
-        bool restado = db.RestarItem(userId, itemId);
-        if (restado)
-        {
-            ActualizarCantidades();
-        }
+        if (panelAbierto)
+            CerrarPanel();
         else
-        {
-            Debug.Log($"No se pudo restar del item {itemId} (ya en 0)");
-        }
+            AbrirPanel();
     }
+
+    private void AbrirPanel()
+    {
+        if (inventoryPanel == null) return;
+
+        panelAbierto = true;
+        inventoryPanel.gameObject.SetActive(true);
+
+        // Animación: subir desde abajo con rebote
+        inventoryPanel.anchoredPosition = new Vector2(inventoryPanel.anchoredPosition.x, -800f); // ajusta valor si es necesario
+        inventoryPanel.DOAnchorPosY(0, duracionApertura)
+            .SetEase(easeApertura);
+
+        ActualizarCantidades();
+    }
+
+    private void CerrarPanel()
+    {
+        if (inventoryPanel == null) return;
+
+        panelAbierto = false;
+
+        // Animación: bajar hacia abajo
+        inventoryPanel.DOAnchorPosY(-800f, duracionCierre)
+            .SetEase(easeCierre)
+            .OnComplete(() => inventoryPanel.gameObject.SetActive(false));
+    }
+
+    // Métodos para + y - (conecta tus botones dentro del panel a estos)
+    public void AñadirEspada() { db.AddItem(userId, 1); ActualizarCantidades(); }
+    public void DisminuirEspada() { db.RestarItem(userId, 1); ActualizarCantidades(); }
+
+    public void AñadirComida() { db.AddItem(userId, 2); ActualizarCantidades(); }
+    public void DisminuirComida() { db.RestarItem(userId, 2); ActualizarCantidades(); }
+
+    public void AñadirLingote() { db.AddItem(userId, 3); ActualizarCantidades(); }
+    public void DisminuirLingote() { db.RestarItem(userId, 3); ActualizarCantidades(); }
+
+    public void AñadirEnderPearl() { db.AddItem(userId, 4); ActualizarCantidades(); }
+    public void DisminuirEnderPearl() { db.RestarItem(userId, 4); ActualizarCantidades(); }
 
     private void ActualizarCantidades()
     {
-        if (cantidadItem1) cantidadItem1.text = db.GetCantidad(userId, 1).ToString();
-        if (cantidadItem2) cantidadItem2.text = db.GetCantidad(userId, 2).ToString();
-        if (cantidadItem3) cantidadItem3.text = db.GetCantidad(userId, 3).ToString();
-        if (cantidadItem4) cantidadItem4.text = db.GetCantidad(userId, 4).ToString();
+        if (cantidadEspada) cantidadEspada.text = db.GetCantidad(userId, 1).ToString();
+        if (cantidadComida) cantidadComida.text = db.GetCantidad(userId, 2).ToString();
+        if (cantidadLingote) cantidadLingote.text = db.GetCantidad(userId, 3).ToString();
+        if (cantidadEnderPearl) cantidadEnderPearl.text = db.GetCantidad(userId, 4).ToString();
     }
 }
