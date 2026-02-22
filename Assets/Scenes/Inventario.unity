@@ -166,10 +166,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 438104b398816a04eb6c9642dbc3f4e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cantidadItem1: {fileID: 578740527}
-  cantidadItem2: {fileID: 734151617}
-  cantidadItem3: {fileID: 2136988406}
-  cantidadItem4: {fileID: 173019615}
+  botonCofre: {fileID: 1503500436}
+  inventoryPanel: {fileID: 1645324662}
+  cantidadEspada: {fileID: 578740527}
+  cantidadComida: {fileID: 734151617}
+  cantidadLingote: {fileID: 2136988406}
+  cantidadEnderPearl: {fileID: 173019615}
+  duracionApertura: 0.45
+  easeApertura: 27
+  duracionCierre: 0.3
+  easeCierre: 26
 --- !u!1 &173019613
 GameObject:
   m_ObjectHideFlags: 0
@@ -522,8 +528,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 63351041}
-        m_TargetAssemblyTypeName: ItemsUI, Assembly-CSharp
-        m_MethodName: DisminuirItem1
+        m_TargetAssemblyTypeName: InventoryUI, Assembly-CSharp
+        m_MethodName: DisminuirEspada
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -789,8 +795,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 63351041}
-        m_TargetAssemblyTypeName: ItemsUI, Assembly-CSharp
-        m_MethodName: "A\xF1adirItem3"
+        m_TargetAssemblyTypeName: InventoryUI, Assembly-CSharp
+        m_MethodName: "A\xF1adirLingote"
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1135,8 +1141,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 63351041}
-        m_TargetAssemblyTypeName: ItemsUI, Assembly-CSharp
-        m_MethodName: "A\xF1adirItem1"
+        m_TargetAssemblyTypeName: InventoryUI, Assembly-CSharp
+        m_MethodName: "A\xF1adirEspada"
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2658,8 +2664,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 63351041}
-        m_TargetAssemblyTypeName: ItemsUI, Assembly-CSharp
-        m_MethodName: DisminuirItem3
+        m_TargetAssemblyTypeName: InventoryUI, Assembly-CSharp
+        m_MethodName: DisminuirLingote
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3106,8 +3112,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 63351041}
-        m_TargetAssemblyTypeName: ItemsUI, Assembly-CSharp
-        m_MethodName: "A\xF1adirItem4"
+        m_TargetAssemblyTypeName: InventoryUI, Assembly-CSharp
+        m_MethodName: "A\xF1adirEnderPearl"
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3239,8 +3245,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 63351041}
-        m_TargetAssemblyTypeName: ItemsUI, Assembly-CSharp
-        m_MethodName: "A\xF1adirItem2"
+        m_TargetAssemblyTypeName: InventoryUI, Assembly-CSharp
+        m_MethodName: "A\xF1adirComida"
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3450,8 +3456,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 63351041}
-        m_TargetAssemblyTypeName: ItemsUI, Assembly-CSharp
-        m_MethodName: DisminuirItem2
+        m_TargetAssemblyTypeName: InventoryUI, Assembly-CSharp
+        m_MethodName: DisminuirComida
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3583,8 +3589,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 63351041}
-        m_TargetAssemblyTypeName: ItemsUI, Assembly-CSharp
-        m_MethodName: DisminuirItem4
+        m_TargetAssemblyTypeName: InventoryUI, Assembly-CSharp
+        m_MethodName: DisminuirEnderPearl
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
