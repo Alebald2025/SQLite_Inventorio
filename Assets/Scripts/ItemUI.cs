@@ -46,7 +46,7 @@ public class InventoryUI : MonoBehaviour
         {
             inventoryPanel.gameObject.SetActive(false);
             // Empieza oculto abajo (ajusta según tu posición)
-            inventoryPanel.anchoredPosition = new Vector2(inventoryPanel.anchoredPosition.x, -800f);
+            inventoryPanel.anchoredPosition = new Vector2(inventoryPanel.anchoredPosition.x, 360f);
         }
 
         // Conectar el cofre para toggle
@@ -80,10 +80,16 @@ public class InventoryUI : MonoBehaviour
         panelAbierto = true;
         inventoryPanel.gameObject.SetActive(true);
 
-        // Animación: subir desde abajo con rebote
-        inventoryPanel.anchoredPosition = new Vector2(inventoryPanel.anchoredPosition.x, -800f); // ajusta valor si es necesario
-        inventoryPanel.DOAnchorPosY(0, duracionApertura)
-            .SetEase(easeApertura);
+        // Empieza muy pequeño (escala desde centro)
+        inventoryPanel.localScale = Vector3.one * 0.1f;
+        inventoryPanel.DOScale(1f, duracionApertura)
+            .SetEase(Ease.OutBack);  // rebote bonito
+
+        // Opcional: pequeño fade-in del panel
+        var canvasGroup = inventoryPanel.GetComponent<CanvasGroup>();
+        if (canvasGroup == null) canvasGroup = inventoryPanel.gameObject.AddComponent<CanvasGroup>();
+        canvasGroup.alpha = 0f;
+        canvasGroup.DOFade(1f, duracionApertura * 0.6f);
 
         ActualizarCantidades();
     }
@@ -94,10 +100,14 @@ public class InventoryUI : MonoBehaviour
 
         panelAbierto = false;
 
-        // Animación: bajar hacia abajo
-        inventoryPanel.DOAnchorPosY(-800f, duracionCierre)
-            .SetEase(easeCierre)
-            .OnComplete(() => inventoryPanel.gameObject.SetActive(false));
+        // Escala a pequeño + fade out
+        inventoryPanel.DOScale(0.1f, duracionCierre)
+            .SetEase(Ease.InBack);
+
+        var canvasGroup = inventoryPanel.GetComponent<CanvasGroup>();
+        if (canvasGroup != null)
+            canvasGroup.DOFade(0f, duracionCierre * 0.6f)
+                .OnComplete(() => inventoryPanel.gameObject.SetActive(false));
     }
 
     // Métodos para + y - (conecta tus botones dentro del panel a estos)
