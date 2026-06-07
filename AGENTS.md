@@ -1,8 +1,4 @@
 <!-- UNITY CODE ASSIST INSTRUCTIONS START -->
-- Project name: SQLiteInventario
+- Project name: SQLite_Inventario_Git
 - Unity version: Unity 2022.3.45f1
-- Active game object:
-  - Name: CanvasManager
-  - Tag: Untagged
-  - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->
