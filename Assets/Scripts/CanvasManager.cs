@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using DG.Tweening;
 
 public class CanvasManager : MonoBehaviour
@@ -33,6 +34,15 @@ public class CanvasManager : MonoBehaviour
         InicializarPaneles();
         MostrarPanel(panelInicial);
         hasStarted = true;
+    }
+
+    // Llama a este método desde el botón Login del MainMenu
+    public void IrALoginOJuego(int indicePanelLogin)
+    {
+        if (PlayerPrefs.HasKey("CurrentUserID"))
+            SceneManager.LoadScene("Game");
+        else
+            MostrarPanel(indicePanelLogin);
     }
 
     public void MostrarPanel(int indice)

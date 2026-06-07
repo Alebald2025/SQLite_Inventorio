@@ -3593,7 +3593,7 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 1175302275}
         m_TargetAssemblyTypeName: CanvasManager, Assembly-CSharp
-        m_MethodName: MostrarPanel
+        m_MethodName: IrALoginOJuego
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

@@ -94,6 +94,12 @@ public class MainMenuUI : MonoBehaviour
         SceneManager.LoadScene("MainMenu");
     }
 
+    public void Salir()
+    {
+        // Vuelve al MainMenu manteniendo la sesión activa
+        SceneManager.LoadScene("MainMenu");
+    }
+
     // --- Helpers ---
 
     private void FadeOut(CanvasGroup cg, float duration, System.Action onComplete = null)
